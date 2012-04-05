@@ -78,6 +78,9 @@ def get_connection(read_only=False):
         conn = vmwareapi_conn.get_connection(read_only)
     elif t == 'baremetal':
         conn = proxy.get_connection(read_only)
+	elif t == 'smartos':
+        from nova.virt.smartos import kvm as smart_kvm
+        conn = smart_kvm.get_connection(read_only)
     else:
         raise Exception('Unknown connection type "%s"' % t)
 
