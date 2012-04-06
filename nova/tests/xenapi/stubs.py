@@ -40,8 +40,7 @@ def stubout_firewall_driver(stubs, conn):
 
 def stubout_instance_snapshot(stubs):
     @classmethod
-    def fake_fetch_image(cls, context, session, instance, image, user,
-                         project, type):
+    def fake_fetch_image(cls, context, session, instance, image, type):
         return [dict(vdi_type='os', vdi_uuid=_make_fake_vdi())]
 
     stubs.Set(vm_utils.VMHelper, 'fetch_image', fake_fetch_image)
@@ -53,7 +52,7 @@ def stubout_instance_snapshot(stubs):
     stubs.Set(vm_utils, '_wait_for_vhd_coalesce', fake_wait_for_vhd_coalesce)
 
 
-def stubout_session(stubs, cls, product_version=None, **opt_args):
+def stubout_session(stubs, cls, product_version=(5, 6, 2), **opt_args):
     """Stubs out three methods from XenAPISession"""
     def fake_import(self):
         """Stubs out get_imported_xenapi of XenAPISession"""
@@ -64,11 +63,9 @@ def stubout_session(stubs, cls, product_version=None, **opt_args):
     stubs.Set(xenapi_conn.XenAPISession, '_create_session',
               lambda s, url: cls(url, **opt_args))
     stubs.Set(xenapi_conn.XenAPISession, 'get_imported_xenapi',
-                       fake_import)
-    if product_version is None:
-        product_version = (5, 6, 2)
-    stubs.Set(xenapi_conn.XenAPISession, 'get_product_version',
-            lambda s: product_version)
+              fake_import)
+    stubs.Set(xenapi_conn.XenAPISession, '_get_product_version',
+              lambda s: product_version)
     # NOTE(johannes): logging can't be used reliably from a thread
     # since it can deadlock with eventlet. It's safe for our faked
     # sessions to be called synchronously in the unit tests. (see
